@@ -1,3 +1,4 @@
 mypaper.*
 !*.bib
 !*.tex
+export

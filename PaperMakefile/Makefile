@@ -26,5 +26,25 @@ $(BASENAME).pdf: ${BASENAME}.tex $(call rwildcard,,*.bib) $(call rwildcard,,*.te
 	@grep -Hrn TODO *.tex | awk '{print "TODO: " $$0}'
 
 
+.PHONY: export clean
+
 clean:
 	rm -f ${BASENAME}.pdf ${BASENAME}.aux ${BASENAME}.bbl ${BASENAME}.blg ${BASENAME}.log ${BASENAME}.toc
+
+export:
+	rm -rf export
+	mkdir export
+	cat ${BASENAME}.tex | awk '/\\listfiles/ {next} /\\documentclass.*/ {print; print "\\listfiles"; next} // {print}' > ,,.tex
+	cp ${BASENAME}.tex export/
+# adding the base tex file (as it is not listed)
+# adding the bibs also (as it uses the bbl actually) as they are useful to rebuild from scratch
+	for i in ${BASENAME}.tex $$(find -name \*.bib) $$(pdflatex ,,.tex | awk '/ *\*File List\*/ {show=1; next;} / \*\*\*\*\*+/ {show=0;next} // {if (show) {print}}') ; do test -f $$i && mkdir -p export/$$(dirname $$i) && cp $$i export/$$(dirname $$i)/; done
+	rm -f ,,.tex
+	echo > export/Makefile
+	echo ${BASENAME}.pdf: >> export/Makefile
+	echo "	"pdflatex ${BASENAME}.tex >> export/Makefile
+	echo "	"bibtex ${BASENAME} >> export/Makefile
+	echo "	"pdflatex ${BASENAME}.tex >> export/Makefile
+	echo "	"pdflatex ${BASENAME}.tex >> export/Makefile
+	echo .PHONY: ${BASENAME}.pdf >> export/Makefile
+
