@@ -1,0 +1,61 @@
+
+% This is an example file, mostly used to illustrate the Makefile and the tools.
+% Still, some interesting latex things could be found inside.
+
+\documentclass[10pt,twocolumn,letterpaper]{article} 
+
+\usepackage{times}
+\usepackage{epsfig}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% Include other packages here, before hyperref.
+
+% If you comment hyperref and then uncomment it, you should delete 
+% egpaper.aux before re-running latex.  (Or just hit 'q' on the first latex
+% run, let it finish, and you should be clear).
+\usepackage[pagebackref=true,breaklinks=true,letterpaper=true,colorlinks,bookmarks=false]{hyperref}
+
+
+
+%%%%%%%%%%%
+%% CUSTOM
+
+\usepackage{verbatim}
+\graphicspath{{images/}}
+
+\newcommand{\myaccro}[2][2]{\vspace*{-#1 ex}~\\{\noindent \underline{\bf #2} --}}
+\usepackage{xcolor}
+
+\definecolor{recolor}{rgb}{0.4,0.4,0.7}
+\newcommand{\rem}[1]{{\color{recolor}~[~{\bf R: #1}~]~}}
+\newcommand{\remdone}[1]{}
+
+\newcommand{\smallsection}[1]{\vspace{.2em}{\bf #1}}
+
+%%
+%%%%%%%%%%%
+
+
+\title{Your Awesomeness is Amazing}
+
+\begin{document}
+
+\maketitle
+% \thispagestyle{empty}
+
+%%%%%%%%% ABSTRACT
+\begin{abstract}
+\input{abstract.tex}
+\end{abstract}
+
+\input{introduction.tex}
+\input{therest.tex}
+% ...
+
+\bibliographystyle{plain}
+\bibliography{mypaper}
+
+
+\end{document}
