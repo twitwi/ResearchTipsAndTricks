@@ -2,3 +2,4 @@ mypaper.*
 !*.bib
 !*.tex
 export
+latexdiff.pdf
