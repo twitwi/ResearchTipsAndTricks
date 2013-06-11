@@ -66,6 +66,8 @@ latexdiff:
 	make || (echo -n "\n\nCompilation of diff'ed latex failed.\nPlease fix it, make and do whatever you want with the pdf.\nTHEN, run:\n    git reset --hard ; git stash apply\n\n" ; false) 
 	mv ${BASENAME}.pdf latexdiff.pdf
 	rm -rf ,,latexdiff
+	@echo "INFO: Your diff file is in latexdiff.pdf"
+	@echo "now reseting and apply stash"
 	git reset --hard
 	git stash apply || echo "INFO: stash apply might fail if nothing was uncommited"
 
