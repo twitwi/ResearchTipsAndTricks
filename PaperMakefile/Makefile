@@ -79,7 +79,9 @@ latexdiff:
 	@echo ""
 	@echo "INFO: Your diff file is in latexdiff.pdf"
 	@echo ""
-	@echo "now reseting and apply stash"
+	@echo "now reseting"
 	git reset --hard
-	git stash apply || echo "INFO: stash apply might fail if nothing was uncommited"
+	@echo "INFO: If you had uncommited changes, they have been stashed."
+	@echo "      Please check and reapply them only if needed (git stash apply)"
+#	git stash apply || echo "INFO: stash apply might fail if nothing was uncommited"
 
