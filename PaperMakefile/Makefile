@@ -5,16 +5,16 @@ BASENAME=mypaper
 
 
 
-# (internal) derived variables
-
 # (internal) tools
 ## recursive wildcard
 rwildcard=$(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $(filter $(subst *,%,$2),$d))
 
 
+# (internal) derived variables
+PDFDEPS = ${BASENAME}.tex $(call rwildcard,,*.bib) $(call rwildcard,,*.tex) Makefile
 
 # (internal) Targets of the Makefile
-$(BASENAME).pdf: ${BASENAME}.tex $(call rwildcard,,*.bib) $(call rwildcard,,*.tex)
+${BASENAME}.pdf: ${PDFDEPS}
 	pdflatex $<
 	test ${BASENAME}.bib && bibtex   ${BASENAME}
 	pdflatex $<
@@ -26,7 +26,17 @@ $(BASENAME).pdf: ${BASENAME}.tex $(call rwildcard,,*.bib) $(call rwildcard,,*.te
 	@grep -Hrn TODO *.tex | awk '{print "TODO: " $$0}'
 
 
-.PHONY: export clean latexdiff
+fast:
+	#	${BASENAME}.tex $(call rwildcard,,*.bib) $(call rwildcard,,*.tex)
+	test ${BASENAME}.bib && bibtex ${BASENAME}
+	pdflatex -halt-on-error ${BASENAME}.tex
+
+continuous:
+	make fast
+	(which inotifywait && inotifywait -r -m . --exclude '^[.]#.*|#.*|.*~|${BASENAME}[.][^t]..$$' -e MODIFY -e CREATE | while read line ; do echo =================== $$line; make fast ; done) || true
+	which inotifywait || while true ; do sleep .25; for i in ${PDFDEPS} ; do if test $$i -nt ${BASENAME}.pdf ; then make fast; break; fi ; done ; done
+
+.PHONY: export clean latexdiff fast continuous
 
 clean:
 	rm -f ${BASENAME}.pdf ${BASENAME}.aux ${BASENAME}.bbl ${BASENAME}.blg ${BASENAME}.log ${BASENAME}.toc
@@ -66,7 +76,9 @@ latexdiff:
 	make || (echo -n "\n\nCompilation of diff'ed latex failed.\nPlease fix it, make and do whatever you want with the pdf.\nTHEN, run:\n    git reset --hard ; git stash apply\n\n" ; false) 
 	mv ${BASENAME}.pdf latexdiff.pdf
 	rm -rf ,,latexdiff
+	@echo ""
 	@echo "INFO: Your diff file is in latexdiff.pdf"
+	@echo ""
 	@echo "now reseting and apply stash"
 	git reset --hard
 	git stash apply || echo "INFO: stash apply might fail if nothing was uncommited"
