@@ -11,7 +11,9 @@ rwildcard=$(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $(filter $(subst 
 
 
 # (internal) derived variables
-PDFDEPS = ${BASENAME}.tex $(call rwildcard,,*.bib) $(call rwildcard,,*.tex) Makefile
+svg-files = $(call rwildcard,${image-path},*.svg)
+svg-files-in-pdf = $(patsubst %.svg,%.pdf,${svg-files})
+PDFDEPS = ${BASENAME}.tex $(call rwildcard,,*.bib) $(call rwildcard,,*.tex) ${svg-files-in-pdf} Makefile
 
 # (internal) Targets of the Makefile
 ${BASENAME}.pdf: ${PDFDEPS}
@@ -27,6 +29,7 @@ ${BASENAME}.pdf: ${PDFDEPS}
 
 
 fast:
+	make ${PDFDEPS}
 	#	${BASENAME}.tex $(call rwildcard,,*.bib) $(call rwildcard,,*.tex)
 	test ${BASENAME}.bib && bibtex ${BASENAME}
 	pdflatex -halt-on-error ${BASENAME}.tex
@@ -40,6 +43,9 @@ continuous:
 
 clean:
 	rm -f ${BASENAME}.pdf ${BASENAME}.aux ${BASENAME}.bbl ${BASENAME}.blg ${BASENAME}.log ${BASENAME}.toc
+
+$(svg-files-in-pdf): %.pdf: %.svg
+	inkscape -T $(patsubst %.pdf,%.svg,$@) --export-pdf=$@
 
 export:
 	rm -rf export

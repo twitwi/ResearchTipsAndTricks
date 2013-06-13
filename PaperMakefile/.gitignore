@@ -3,3 +3,4 @@ mypaper.*
 !*.tex
 export
 latexdiff.pdf
+# there is a .gitignore in "images/" too
