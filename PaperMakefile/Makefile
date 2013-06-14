@@ -22,15 +22,17 @@ ${BASENAME}.pdf: ${PDFDEPS}
 	pdflatex $<
 	pdflatex $<
 	@echo "Making some classical checks on the pdf"
-	@echo "=> looking for '?' that might be a missing reference"
-	@pdftotext $@ - | grep -Hrn '[?]' -  | awk '{print "? in PDF: " $$0}'
-	@echo "=> looking for 'TODO'"
-	@grep -Hrn TODO *.tex | awk '{print "TODO: " $$0}'
+	@echo "=> looking for '?' in the PDF (that might be a missing reference)"
+	@pdftotext $@ - | grep -Hrn '[?]' -  | awk '{print "   - ?: " $$0}'
+	@echo "=> looking for 'TODO' in the PDF"
+	@pdftotext $@ - | grep -Hrni 'TODO' -  | awk '{print "   - TODO: " $$0}'
+	@echo "=> looking for 'TODO' in tex files"
+	@grep -Hrni TODO $(call rwildcard,,*.tex) | awk '{print "   - TODO: " $$0}'
 
 
 fast:
 	make ${PDFDEPS}
-	#	${BASENAME}.tex $(call rwildcard,,*.bib) $(call rwildcard,,*.tex)
+#	${BASENAME}.tex $(call rwildcard,,*.bib) $(call rwildcard,,*.tex)
 	test ${BASENAME}.bib && bibtex ${BASENAME}
 	pdflatex -halt-on-error ${BASENAME}.tex
 
