@@ -41,13 +41,16 @@ continuous:
 	(which inotifywait && inotifywait -r -m . --exclude '^[.]#.*|#.*|.*~|${BASENAME}[.][^t]..$$' -e MODIFY -e CREATE | while read line ; do echo =================== $$line; make fast ; done) || true
 	which inotifywait || while true ; do sleep .25; for i in ${PDFDEPS} ; do if test $$i -nt ${BASENAME}.pdf ; then make fast; break; fi ; done ; done
 
-.PHONY: export clean latexdiff fast continuous
+.PHONY: export export-images clean latexdiff fast continuous
 
 clean:
 	rm -f ${BASENAME}.pdf ${BASENAME}.aux ${BASENAME}.bbl ${BASENAME}.blg ${BASENAME}.log ${BASENAME}.toc
 
 $(svg-files-in-pdf): %.pdf: %.svg
 	inkscape -T $(patsubst %.pdf,%.svg,$@) --export-pdf=$@
+
+reconvert-svg:
+	make $(svg-files-in-pdf)
 
 export:
 	rm -rf export
@@ -65,6 +68,31 @@ export:
 	echo "	"pdflatex ${BASENAME}.tex >> export/Makefile
 	echo "	"pdflatex ${BASENAME}.tex >> export/Makefile
 	echo .PHONY: ${BASENAME}.pdf >> export/Makefile
+
+
+# used to export images (for IEEE journal(s?)): might need to adapt things (especially if you have tables to skip), need to uncomment update the choice of the teaser image and the author names.
+export-images:
+	make reconvert-svg
+	rm -rf export-images
+	mkdir export-images
+	cat ${BASENAME}.tex | awk ' /\\begin{document}.*/ {print "\\usepackage[active,floats,graphics,tightpage,pdflatex]{preview}" ; print "\\renewcommand{\\caption}[1]{}" ; print ; next} // {print}' > ,,.tex
+	pdflatex ,,.tex
+	test ${BASENAME}.bib && bibtex   ,,
+	pdflatex ,,.tex
+	pdflatex ,,.tex
+##	 extract and convert each page, pdftk not working here... but don't know why
+	for i in $$(seq 30)  ; do pdftops -eps -level3 -f $$i -l $$i ,,.pdf export-images/"Figure $$i.eps" || true           ; done
+##	if you have to skip things (e.g., due to a table), change the seq above and use the below to complete (it offsets by one with the "-1")… take inspiration
+#	for i in 21 22 23 24 25 26 27 28 ; do pdftops -eps -level3 -f $$i -l $$i ,,.pdf export-images/"Figure $$(($$i - 1)).eps" ; done
+## 	Below: use special raster option to convert an image with anoying semi transparent things
+#	pdftops -eps -level3 -f 28 -l 28 -r 1800 ,,.pdf export-images/"Figure 27.eps"
+##	Below: other files
+#	cp export-images/"Figure 1.eps" export-images/"Teaser Image.eps"
+#	cp images/guy1.jpg export-images/
+#	cp images/guy2.jpg export-images/
+#	cp images/guy3.jpg export-images/
+#	cp Author-Copies-tpami.pdf export-images/
+	rm -f ,,.tex
 
 
 
