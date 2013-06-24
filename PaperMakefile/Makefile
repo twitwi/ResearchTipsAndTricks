@@ -24,7 +24,7 @@ PDFDEPS = ${BASENAME}.tex $(call rwildcard,,*.bib) $(call rwildcard,,*.tex) ${sv
 # (internal) Targets of the Makefile
 
 ${BASENAME}.pdf: ${PDFDEPS}
-	pdflatex $<
+	pdflatex -halt-on-error $<
 	test ${BASENAME}.bib && bibtex   ${BASENAME}
 	pdflatex $<
 	pdflatex $<
