@@ -1,6 +1,11 @@
 
 # configuration variables
 BASENAME=mypaper
+pdflatex=pdflatex
+
+# OPT: following line allows packages like "minted" to call external commands
+#pdflatex := ${pdflatex} -shell-escape
+
 
 
 # features that are possible but not included for now (please open a feature request)
@@ -24,10 +29,10 @@ PDFDEPS = ${BASENAME}.tex $(call rwildcard,,*.bib) $(call rwildcard,,*.tex) ${sv
 # (internal) Targets of the Makefile
 
 ${BASENAME}.pdf: ${PDFDEPS}
-	pdflatex -halt-on-error $<
+	${pdflatex} -halt-on-error $<
 	if test -f ${BASENAME}.bib ; then bibtex   ${BASENAME} ; fi
-	pdflatex $<
-	pdflatex $<
+	${pdflatex} $<
+	${pdflatex} $<
 	@echo "Making some classical checks on the pdf"
 	@echo "=> looking for '?' in the PDF (that might be a missing reference)"
 	@pdftotext $@ - | grep -Hrn '[?]' -  | awk '{print "   - ?: " $$0}'
@@ -41,7 +46,7 @@ fast:
 	make ${PDFDEPS}
 #	${BASENAME}.tex $(call rwildcard,,*.bib) $(call rwildcard,,*.tex)
 	if test -f ${BASENAME}.bib ; then bibtex ${BASENAME} ; fi
-	pdflatex -halt-on-error ${BASENAME}.tex
+	${pdflatex} -halt-on-error ${BASENAME}.tex
 
 continuous:
 	make fast
@@ -66,14 +71,14 @@ export:
 	cp ${BASENAME}.tex export/
 # adding the base tex file (as it is not listed)
 # adding the bibs also (as it uses the bbl actually) as they are useful to rebuild from scratch
-	for i in ${BASENAME}.tex $$(find -name \*.bib) $$(pdflatex ,,.tex | awk '/ *\*File List\*/ {show=1; next;} / \*\*\*\*\*+/ {show=0;next} // {if (show) {print}}') ; do if test -f $$i ; then mkdir -p export/$$(dirname $$i) && cp $$i export/$$(dirname $$i)/ ; fi ; done
+	for i in ${BASENAME}.tex $$(find -name \*.bib) $$(${pdflatex} ,,.tex | awk '/ *\*File List\*/ {show=1; next;} / \*\*\*\*\*+/ {show=0;next} // {if (show) {print}}') ; do if test -f $$i ; then mkdir -p export/$$(dirname $$i) && cp $$i export/$$(dirname $$i)/ ; fi ; done
 	rm -f ,,.tex
 	echo > export/Makefile
 	echo ${BASENAME}.pdf: >> export/Makefile
-	echo "	"pdflatex ${BASENAME}.tex >> export/Makefile
+	echo "	"${pdflatex} ${BASENAME}.tex >> export/Makefile
 	if test -f ${BASENAME}.bib ; then echo "	"bibtex ${BASENAME} >> export/Makefile ; fi
-	echo "	"pdflatex ${BASENAME}.tex >> export/Makefile
-	echo "	"pdflatex ${BASENAME}.tex >> export/Makefile
+	echo "	"${pdflatex} ${BASENAME}.tex >> export/Makefile
+	echo "	"${pdflatex} ${BASENAME}.tex >> export/Makefile
 	echo .PHONY: ${BASENAME}.pdf >> export/Makefile
 
 
@@ -83,10 +88,10 @@ export-images:
 	rm -rf export-images
 	mkdir export-images
 	cat ${BASENAME}.tex | awk ' /\\begin{document}.*/ {print "\\usepackage[active,floats,graphics,tightpage,pdflatex]{preview}" ; print "\\renewcommand{\\caption}[1]{}" ; print ; next} // {print}' > ,,.tex
-	pdflatex ,,.tex
+	${pdflatex} ,,.tex
 	if test -f ${BASENAME}.bib ; then bibtex   ,, ; fi
-	pdflatex ,,.tex
-	pdflatex ,,.tex
+	${pdflatex} ,,.tex
+	${pdflatex} ,,.tex
 ##	 extract and convert each page, pdftk not working here... but don't know why
 	for i in $$(seq 30)  ; do pdftops -eps -level3 -f $$i -l $$i ,,.pdf export-images/"Figure $$i.eps" || true           ; done
 ##	if you have to skip things (e.g., due to a table), change the seq above and use the below to complete (it offsets by one with the "-1")… take inspiration
