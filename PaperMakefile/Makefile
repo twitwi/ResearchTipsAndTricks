@@ -25,7 +25,7 @@ PDFDEPS = ${BASENAME}.tex $(call rwildcard,,*.bib) $(call rwildcard,,*.tex) ${sv
 
 ${BASENAME}.pdf: ${PDFDEPS}
 	pdflatex -halt-on-error $<
-	test ${BASENAME}.bib && bibtex   ${BASENAME}
+	if test -f ${BASENAME}.bib ; then bibtex   ${BASENAME} ; fi
 	pdflatex $<
 	pdflatex $<
 	@echo "Making some classical checks on the pdf"
@@ -40,7 +40,7 @@ ${BASENAME}.pdf: ${PDFDEPS}
 fast:
 	make ${PDFDEPS}
 #	${BASENAME}.tex $(call rwildcard,,*.bib) $(call rwildcard,,*.tex)
-	test ${BASENAME}.bib && bibtex ${BASENAME}
+	if test -f ${BASENAME}.bib ; then bibtex ${BASENAME} ; fi
 	pdflatex -halt-on-error ${BASENAME}.tex
 
 continuous:
@@ -66,12 +66,12 @@ export:
 	cp ${BASENAME}.tex export/
 # adding the base tex file (as it is not listed)
 # adding the bibs also (as it uses the bbl actually) as they are useful to rebuild from scratch
-	for i in ${BASENAME}.tex $$(find -name \*.bib) $$(pdflatex ,,.tex | awk '/ *\*File List\*/ {show=1; next;} / \*\*\*\*\*+/ {show=0;next} // {if (show) {print}}') ; do test -f $$i && mkdir -p export/$$(dirname $$i) && cp $$i export/$$(dirname $$i)/; done
+	for i in ${BASENAME}.tex $$(find -name \*.bib) $$(pdflatex ,,.tex | awk '/ *\*File List\*/ {show=1; next;} / \*\*\*\*\*+/ {show=0;next} // {if (show) {print}}') ; do if test -f $$i ; then mkdir -p export/$$(dirname $$i) && cp $$i export/$$(dirname $$i)/ ; fi ; done
 	rm -f ,,.tex
 	echo > export/Makefile
 	echo ${BASENAME}.pdf: >> export/Makefile
 	echo "	"pdflatex ${BASENAME}.tex >> export/Makefile
-	echo "	"bibtex ${BASENAME} >> export/Makefile
+	if test -f ${BASENAME}.bib ; then echo "	"bibtex ${BASENAME} >> export/Makefile ; fi
 	echo "	"pdflatex ${BASENAME}.tex >> export/Makefile
 	echo "	"pdflatex ${BASENAME}.tex >> export/Makefile
 	echo .PHONY: ${BASENAME}.pdf >> export/Makefile
@@ -84,7 +84,7 @@ export-images:
 	mkdir export-images
 	cat ${BASENAME}.tex | awk ' /\\begin{document}.*/ {print "\\usepackage[active,floats,graphics,tightpage,pdflatex]{preview}" ; print "\\renewcommand{\\caption}[1]{}" ; print ; next} // {print}' > ,,.tex
 	pdflatex ,,.tex
-	test ${BASENAME}.bib && bibtex   ,,
+	if test -f ${BASENAME}.bib ; then bibtex   ,, ; fi
 	pdflatex ,,.tex
 	pdflatex ,,.tex
 ##	 extract and convert each page, pdftk not working here... but don't know why
