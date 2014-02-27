@@ -17,7 +17,7 @@ gogogo() {
         jj=$(printf %03d $j)
         pdf=$(readlink -f "$i")
         if $GENIMG ; then
-            (cd ${out} && convert -density 50 -background white "$pdf" -geometry x500 p${jj}.png)
+            (cd ${out} && convert -density 100 -background white "$pdf" -geometry x500 p${jj}.png)
             (cd ${out} && montage p"$jj"-* -tile x2  -geometry +2+2 all-p${jj}.jpg)
             (cd ${out} && rm -rf p"$jj"-*)
         fi
@@ -40,12 +40,15 @@ cat <<EOF
 
         <!-- PROVIDE METADATA -->
         <!-- ================ -->
-        <title>Latent Structure Alignment for Unsupervised and Semi-Supervised Transfer Learning</title>
-        <meta name="author" content="Rémi Emonet, Damien Muselet, Marc Sebban">
+        <title>PDFSet GIST by https://github.com/twitwi/ResearchTipsAndTricks/</title>
+        <meta name="author" content="https://github.com/twitwi/ResearchTipsAndTricks/">
 
         <!-- override some style here if needed (or in an external file) -->
         <style type="text/css">
-html, body{width: 99%; height: 99%; overflow: hidden} img.fit{width: 100%; height: 100%;}
+
+html, body{width: 99%; height: 99%;  overflow-x: scroll;}
+img.fit{height: 100%;}
+
         </style>
         <script>
         function gistNamespace() {
@@ -69,8 +72,8 @@ cat<<EOF
            }
            updt();
            document.onkeypress = function(e) {
-              if (e.keyCode == 39) { next(); updt(); }
-              if (e.keyCode == 37) { prev(); updt(); }
+              if (e.keyCode == 39 || e.keyCode == 40) { next(); updt(); }
+              if (e.keyCode == 37 || e.keyCode == 38) { prev(); updt(); }
            }
         }
         window.onload = gistNamespace;
