@@ -17,7 +17,7 @@ gogogo() {
         jj=$(printf %03d $j)
         pdf=$(readlink -f "$i")
         if $GENIMG ; then
-            (cd ${out} && convert -density 100 -background white "$pdf" -geometry x500 p${jj}.png)
+            (cd ${out} && convert -density 50 -background white "$pdf" -geometry x500 p${jj}.png)
             (cd ${out} && montage p"$jj"-* -tile x2  -geometry +2+2 all-p${jj}.jpg)
             (cd ${out} && rm -rf p"$jj"-*)
         fi
@@ -46,12 +46,19 @@ cat <<EOF
         <!-- override some style here if needed (or in an external file) -->
         <style type="text/css">
 
-html, body{width: 99%; height: 99%;  overflow-x: scroll;}
-img.fit{height: 100%;}
+html, body {margin:0; padding:0; width: 100%; height: 100%;}
+body {overflow-x: scroll;}
+img.fit{height: 95%;}
+.overlay {position: fixed; left: 45%; top:0;}
 
         </style>
         <script>
         function gistNamespace() {
+           if (typeof String.prototype.startsWith != 'function') {
+             String.prototype.startsWith = function (str){
+               return this.indexOf(str) == 0;
+             }
+           }
            var EMPTY = "__empty__";
            var meta = [
 EOF
@@ -60,20 +67,30 @@ footer() {
 cat<<EOF
            EMPTY];
            var cur = 0;
+           if (location.hash.startsWith('#p')) {
+              cur = parseInt(location.hash.substr(2)) - 1;
+           }
            /*
            var next = function() { cur = (cur+1) % (meta.length-1) }
            var prev = function() { cur = (cur+meta.length-2) % (meta.length-1) }
            */
-           var next = function() { cur = cur+1 }
-           var prev = function() { cur = cur-1 }
+           var next = function(n) { cur = cur+n; if (cur>meta.length-2) cur=meta.length-2; }
+           var prev = function(n) { cur = cur-n; if (cur<0) cur=0; }
            var updt = function() {
               document.getElementById("theA").href = "file://"+meta[cur].pdf;
               document.getElementById("theIMG").src = meta[cur].img;
+              var N = cur + 1
+              var what = N+" / "+(meta.length-1);
+              document.title = "PDFs GIST "+what;
+              document.getElementById("theN").innerHTML = what;
+              location.hash = "#p"+N;
            }
            updt();
            document.onkeypress = function(e) {
-              if (e.keyCode == 39 || e.keyCode == 40) { next(); updt(); }
-              if (e.keyCode == 37 || e.keyCode == 38) { prev(); updt(); }
+              if (e.keyCode == 37) { prev(1); updt(); return false; }
+              if (e.keyCode == 38) { prev(10); updt(); return false; }
+              if (e.keyCode == 39) { next(1); updt(); return false; }
+              if (e.keyCode == 40) { next(10); updt(); return false; }
            }
         }
         window.onload = gistNamespace;
@@ -81,6 +98,7 @@ cat<<EOF
     </head>
     <body>
        <a id="theA" href=""><img id="theIMG" class="fit" src=""></a>
+       <div class="overlay" id="theN"></div>
     </body>
 </html>
 EOF
