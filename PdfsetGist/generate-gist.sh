@@ -16,6 +16,12 @@ gogogo() {
     J=0 ; for i in "$@" ; do
         jj=$(printf %03d $j)
         pdf=$(readlink -f "$i")
+        if echo "$i" | grep -q '^/' ; then
+            pdfurl="file://${pdf}"
+        else
+            # ../ to undo the ${OUT}
+            pdfurl="../${i}"
+        fi
         if $GENIMG ; then
             (cd ${out} && convert -density 50 -background white "$pdf" -geometry x500 p${jj}.png)
             (cd ${out} && montage p"$jj"-* -tile x2  -geometry +2+2 all-p${jj}.jpg)
@@ -23,7 +29,7 @@ gogogo() {
         fi
         j=$(($j + 1))
         cat<<EOF
-{ pdf: "${pdf}", img: "all-p${jj}.jpg" },
+{ pdf: "${pdfurl}", img: "all-p${jj}.jpg" },
 EOF
     done
 }
@@ -77,7 +83,7 @@ cat<<EOF
            var next = function(n) { cur = cur+n; if (cur>meta.length-2) cur=meta.length-2; }
            var prev = function(n) { cur = cur-n; if (cur<0) cur=0; }
            var updt = function() {
-              document.getElementById("theA").href = "file://"+meta[cur].pdf;
+              document.getElementById("theA").href = meta[cur].pdf;
               document.getElementById("theIMG").src = meta[cur].img;
               var N = cur + 1
               var what = N+" / "+(meta.length-1);
