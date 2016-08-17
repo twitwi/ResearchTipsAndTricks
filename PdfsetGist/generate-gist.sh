@@ -112,3 +112,4 @@ EOF
 
 (header ; gogogo "$@" ; footer) > ${out}/index.html
 
+echo "Output has been generated in '${out}/index.html'"
