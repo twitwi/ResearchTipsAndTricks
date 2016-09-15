@@ -71,7 +71,7 @@ export:
 	cp ${BASENAME}.tex export/
 # adding the base tex file (as it is not listed)
 # adding the bibs also (as it uses the bbl actually) as they are useful to rebuild from scratch
-	for i in ${BASENAME}.tex $$(find . -name \*.bib) $$(${pdflatex} ,,.tex | awk '/ *\*File List\*/ {show=1; next;} / \*\*\*\*\*+/ {show=0;next} // {if (show) {print}}') ; do if test -f $$i ; then mkdir -p export/$$(dirname $$i) && cp $$i export/$$(dirname $$i)/ ; fi ; done
+	for i in ${BASENAME}.tex $$(find . -name \*.bib) $$(max_print_line=1000 ${pdflatex} ,,.tex | awk '/ *\*File List\*/ {show=1; next;} / \*\*\*\*\*+/ {show=0;next} // {if (show) {print}}') ; do if test -f $$i ; then mkdir -p export/$$(dirname $$i) && cp $$i export/$$(dirname $$i)/ ; fi ; done
 	rm -f ,,.tex
 	echo > export/Makefile
 	echo ${BASENAME}.pdf: >> export/Makefile
