@@ -35,12 +35,13 @@ ${BASENAME}.pdf: ${PDFDEPS}
 	${pdflatex} $<
 	@echo "Making some classical checks on the pdf"
 	@echo "=> looking for '?' in the PDF (that might be a missing reference)"
-	@pdftotext $@ - | grep -Hrn '[?]' -  | awk '{print "   - ?: " $$0}'
+	@pdftotext $@ - | grep -Hrn '[?]' -  | awk '{print "   - ?: " $$0}' | grep --color '[?]' || true
 	@echo "=> looking for 'TODO' in the PDF"
-	@pdftotext $@ - | grep -Hrni 'TODO' -  | awk '{print "   - TODO: " $$0}'
+	@pdftotext $@ - | grep -Hrni 'TODO' -  | awk '{print "   - TODO: " $$0}' | grep --color -i  'TODO' || true
 	@echo "=> looking for 'TODO' in tex files"
-	@grep -Hrni TODO $(call rwildcard,,*.tex) | awk '{print "   - TODO: " $$0}'
-
+	@grep -Hrni TODO $(call rwildcard,,*.tex) | awk '{print "   - TODO: " $$0}' | grep --color -i  'TODO' || true
+	@echo "=> looking for ' ~' or '~ ' in the tex files (double spacing)"
+	@grep -Hrni '\( ~\|~ \)' $(call rwildcard,,*.tex) | awk '{print "   - ~ (double space): " $$0}' | grep --color  '\( ~\|~ \)' || true
 
 fast:
 	make ${PDFDEPS}
