@@ -46,7 +46,7 @@ ${BASENAME}.pdf: ${PDFDEPS}
 fast:
 	make ${PDFDEPS}
 #	${BASENAME}.tex $(call rwildcard,,*.bib) $(call rwildcard,,*.tex)
-	if test -f ${BASENAME}.bib ; then bibtex ${BASENAME} ; fi
+	if test -f ${BASENAME}.bib ; then bibtex ${BASENAME} || make ; fi
 	${pdflatex} -halt-on-error ${BASENAME}.tex
 
 continuous:
