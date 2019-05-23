@@ -2,10 +2,13 @@
 # configuration variables
 BASENAME=mypaper
 pdflatex=pdflatex
+image-path=images
+# derived variables (override if needed)
+BIB=${BASENAME}.bib
+
 
 # OPT: following line allows packages like "minted" to call external commands
 #pdflatex := ${pdflatex} -shell-escape
-
 
 
 # features that are possible but not included for now (please open a feature request)
@@ -30,7 +33,7 @@ PDFDEPS = ${BASENAME}.tex $(call rwildcard,,*.bib) $(call rwildcard,,*.tex) ${sv
 
 ${BASENAME}.pdf: ${PDFDEPS}
 	${pdflatex} -halt-on-error $<
-	if test -f ${BASENAME}.bib ; then bibtex   ${BASENAME} ; fi
+	if test -f ${BIB} ; then bibtex   ${BASENAME} ; fi
 	${pdflatex} $<
 	${pdflatex} $<
 	@echo "Making some classical checks on the pdf"
@@ -77,7 +80,7 @@ export:
 	echo > export/Makefile
 	echo ${BASENAME}.pdf: >> export/Makefile
 	echo "	"${pdflatex} ${BASENAME}.tex >> export/Makefile
-	if test -f ${BASENAME}.bib ; then echo "	"bibtex ${BASENAME} >> export/Makefile ; fi
+	if test -f ${BIB} ; then echo "	"bibtex ${BASENAME} >> export/Makefile ; fi
 	echo "	"${pdflatex} ${BASENAME}.tex >> export/Makefile
 	echo "	"${pdflatex} ${BASENAME}.tex >> export/Makefile
 	echo .PHONY: ${BASENAME}.pdf >> export/Makefile
@@ -90,7 +93,7 @@ export-images:
 	mkdir export-images
 	cat ${BASENAME}.tex | awk ' /\\begin{document}.*/ {print "\\usepackage[active,floats,graphics,tightpage,pdflatex]{preview}" ; print "\\renewcommand{\\caption}[1]{}" ; print ; next} // {print}' > ,,.tex
 	${pdflatex} ,,.tex
-	if test -f ${BASENAME}.bib ; then bibtex   ,, ; fi
+	if test -f ${BIB} ; then bibtex   ,, ; fi
 	${pdflatex} ,,.tex
 	${pdflatex} ,,.tex
 ##	 extract and convert each page, pdftk not working here... but don't know why
