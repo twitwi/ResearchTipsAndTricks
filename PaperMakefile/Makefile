@@ -122,7 +122,7 @@ latexdiff:
 	cat ,,latexdiff.br | xargs git checkout
 	rm -f ,,latexdiff.br
 	(cd ,,latexdiff && for i in $$(find . -name \*.tex) ; do latexdiff $$i ../$$i > diff; yes | mv diff ../$$i; done)
-	make || (echo -n "\n\nCompilation of diff'ed latex failed.\nPlease fix it, make and do whatever you want with the pdf.\nTHEN, run:\n    git reset --hard ; git stash apply\n\n" ; false) 
+	make BASENAME=${BASENAME} || (echo -n "\n\nCompilation of diff'ed latex failed.\nPlease fix it, make and do whatever you want with the pdf.\nTHEN, run:\n    git reset --hard ; git stash apply\n\n" ; false) 
 	mv ${BASENAME}.pdf latexdiff.pdf
 	rm -rf ,,latexdiff
 	@echo ""
