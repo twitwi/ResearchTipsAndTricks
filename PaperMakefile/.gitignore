@@ -4,4 +4,5 @@ mypaper.*
 export
 export-images
 latexdiff.pdf
+makefile-ext.mk
 # there is a .gitignore in "images/" too

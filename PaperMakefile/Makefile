@@ -6,6 +6,8 @@ image-path=images
 # derived variables (override if needed)
 BIB=${BASENAME}.bib
 
+# one can create a user-specific plugin to this makefile
+-include makefile-ext.mk
 
 # OPT: following line allows packages like "minted" to call external commands
 #pdflatex := ${pdflatex} -shell-escape
