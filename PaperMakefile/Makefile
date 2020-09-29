@@ -44,7 +44,7 @@ ${BASENAME}.pdf: ${PDFDEPS}
 	@echo "=> looking for 'TODO' in the PDF"
 	@pdftotext $@ - | grep -Hrni 'TODO' -  | awk '{print "   - TODO: " $$0}' | grep --color -i  'TODO' || true
 	@echo "=> looking for 'TODO' in tex files"
-	@grep -Hrni TODO $(call rwildcard,,*.tex) | awk '{print "   - TODO: " $$0}' | grep --color -i  'TODO' || true
+	@grep -Hrni '^ *[^%].*TODO' $(call rwildcard,,*.tex) | awk '{print "   - TODO: " $$0}' | grep --color -i  'TODO' || true
 	@echo "=> looking for ' ~' or '~ ' in the tex files (double spacing)"
 	@grep -Hrni '\( ~\|~ \)' $(call rwildcard,,*.tex) | awk '{print "   - ~ (double space): " $$0}' | grep --color  '\( ~\|~ \)' || true
 
@@ -52,11 +52,11 @@ fast:
 	make ${PDFDEPS}
 #	${BASENAME}.tex $(call rwildcard,,*.bib) $(call rwildcard,,*.tex)
 	if test -f ${BASENAME}.bib ; then bibtex ${BASENAME} || make ; fi
-	${pdflatex} -halt-on-error ${BASENAME}.tex
+	${pdflatex} -halt-on-error ${BASENAME}.tex || echo -e "\033[0;31m ========== NOT OK ========== \033[0m"
 
 continuous:
 	make fast
-	(which inotifywait && inotifywait -r -m . --exclude '^[.]#.*|#.*|.*~|${BASENAME}[.][^t]..$$' -e MODIFY -e CREATE | while read line ; do echo =================== $$line; make fast ; done) || true
+	(which inotifywait && inotifywait -r -m . --exclude '^./([.]#.*|#.*|.*~|${BASENAME}[.][^t]..|.*lock|flycheck_.*[.]tex|[.]git/.*|[^/]*.py|.*[.]out|.*[.]err)$$' -e MODIFY -e CREATE | while read line ; do echo =================== $$line; make fast ; done) || true
 	which inotifywait || while true ; do sleep .25; for i in ${PDFDEPS} ; do if test $$i -nt ${BASENAME}.pdf ; then make fast; break; fi ; done ; done
 
 .PHONY: export export-images clean latexdiff fast continuous
