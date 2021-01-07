@@ -1,37 +1,82 @@
 #!/bin/bash
 
-# TMP
-if test -d gist/ ; then
-    GENIMG=false
-else
-    GEIMG=true
+if test "$#" = "0" ; then
+    echo please pass the list of pdfs, e.g. '*.pdf'
+    exit
 fi
-#GENIMG=true
-
 
 out=gist
-mkdir -p ${out}
+mkdir -p "${out}"
+
+elementIn () {
+  local e match="$1"
+  shift
+  for e; do [[ "$e" == "$match" ]] && return 0; done
+  return 1
+}
 
 gogogo() {
-    J=0 ; for i in "$@" ; do
-        jj=$(printf %03d $j)
-        pdf=$(readlink -f "$i")
+    local generated=("${out}/index.html")
+    local j=0 ; for i in "$@" ; do
+        local jj=$(printf %03d $j)
+        local input=$(readlink -f "$i")
+        local pdf=${input}
+        local bn=$(basename "$i")
+        local sha=$(sha1sum "$input" | colrm 10)
+        local jpg=$(printf '%s-%s.jpg' "$sha" "${bn//[^a-zA-Z0-9]/-}")
         if echo "$i" | grep -q '^/' ; then
-            pdfurl="file://${pdf}"
+            local pdfurl="file://${pdf}"
         else
             # ../ to undo the ${OUT}
-            pdfurl="../${i}"
+            local pdfurl="../${i}"
         fi
-        if $GENIMG ; then
-            (cd ${out} && convert -density 50 -background white "$pdf" -geometry x500 p${jj}.png)
-            (cd ${out} && montage p"$jj"-* -tile x2  -geometry +2+2 all-p${jj}.jpg)
-            (cd ${out} && rm -rf p"$jj"-*)
+        printf "Input: $input" >&2
+        local gen=false
+        if [ "$REGEN" != "" -o ! -f "${out}/${jpg}" ] ; then
+            gen=true
+        fi
+        local ext=${input##*.}
+        if [ "$ext" = "xopp" ] ; then
+            printf " ... xopp->pdf" >&2
+            pdf=$(printf '%s-%s.pdf' "$sha" "${bn//[^a-zA-Z0-9]/-}")
+            if $gen ; then
+                xournalpp "$input" -p "$out/$pdf" 2>/dev/null >&2
+            fi
+            generated+=("$out/$pdf")
+        fi
+        generated+=("$out/$jpg")
+        if $gen ; then
+            printf " ... pdf->jpg" >&2
+            (cd "${out}" && convert -density 50 -background white "$pdf" -geometry x500 p${jj}.png)
+            (cd "${out}" && if test -f p${jj}.png ; then mv p${jj}.png p${jj}-000.png ; fi)
+            (cd "${out}" && montage p"$jj"-* -tile x2  -geometry +2+2 ${jpg})
+            (cd "${out}" && rm -rf p"$jj"-*)
+        fi
+        if $gen ; then
+            echo " ... done" >&2
+        else
+            echo " ... skipped as '${out}/${jpg}' exists" >&2
         fi
         j=$(($j + 1))
         cat<<EOF
-{ pdf: "${pdfurl}", img: "all-p${jj}.jpg" },
+{ pdf: "${pdfurl}", img: "${jpg}" },
 EOF
     done
+    local unused=()
+    for i in "${out}/"* ; do
+        if elementIn "$i" "${generated[@]}" ; then
+            true # ok
+        else
+            unused+=("$i")
+        fi
+    done
+    if [ "${#unused[@]}" -gt 0 ] ; then
+        echo "Unused generated files:" >&2
+        for i in "${unused[@]}" ; do
+            printf " '%s'" "$i" >&2
+        done
+        echo >&2
+    fi
 }
 
 
@@ -92,7 +137,7 @@ cat<<EOF
               location.hash = "#p"+N;
            }
            updt();
-           document.onkeypress = function(e) {
+           document.onkeydown = function(e) {
               if (e.keyCode == 37) { prev(1); updt(); return false; }
               if (e.keyCode == 38) { prev(10); updt(); return false; }
               if (e.keyCode == 39) { next(1); updt(); return false; }
@@ -110,6 +155,9 @@ cat<<EOF
 EOF
 }
 
-(header ; gogogo "$@" ; footer) > ${out}/index.html
+(header ; gogogo "$@" ; footer) > "${out}/index.html"
 
 echo "Output has been generated in '${out}/index.html'"
+echo "# Maybe run:"
+#echo "fff gist/index.html .."
+echo "firefox gist/index.html"
