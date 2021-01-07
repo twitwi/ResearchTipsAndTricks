@@ -51,7 +51,7 @@ gogogo() {
         generated+=("$out/$jpg")
         if $gen ; then
             printf " ... pdf->jpg" >&2
-            (cd "${out}" && convert -density 50 -background white "$pdf" -geometry x500 p${jj}.png)
+            (cd "${out}" && convert -density 50 -background white "$pdf" -geometry x500 -colorspace RGB p${jj}.png)
             (cd "${out}" && if test -f p${jj}.png ; then mv p${jj}.png p${jj}-000.png ; fi)
             (cd "${out}" && montage p"$jj"-* -tile x2  -geometry +2+2 ${jpg})
             (cd "${out}" && rm -rf p"$jj"-*)
