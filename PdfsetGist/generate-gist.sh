@@ -2,6 +2,7 @@
 
 if test "$#" = "0" ; then
     echo please pass the list of pdfs, e.g. '*.pdf'
+    echo possible environment variables are: REGEN=y LINKPDF=y
     exit
 fi
 
@@ -39,6 +40,9 @@ gogogo() {
         if [ "$ext" = "xopp" ] ; then
             printf " ... xopp->pdf" >&2
             pdf=$(printf '%s-%s.pdf' "$sha" "${bn//[^a-zA-Z0-9]/-}")
+            if [ "$LINKPDF" != "" ] ; then
+                pdfurl="file://$(readlink -f "$out/$pdf")"
+            fi
             if $gen ; then
                 xournalpp "$input" -p "$out/$pdf" 2>/dev/null >&2
             fi
