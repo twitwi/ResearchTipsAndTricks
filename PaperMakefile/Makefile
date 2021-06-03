@@ -51,7 +51,7 @@ ${BASENAME}.pdf: ${PDFDEPS}
 fast:
 	make ${PDFDEPS}
 #	${BASENAME}.tex $(call rwildcard,,*.bib) $(call rwildcard,,*.tex)
-	if test -f ${BASENAME}.bib ; then bibtex ${BASENAME} || make ; fi
+	if test -f ${BIB} ; then bibtex ${BASENAME} || make ; fi
 	${pdflatex} -halt-on-error ${BASENAME}.tex || echo -e "\033[0;31m ========== NOT OK ========== \033[0m"
 
 continuous:
